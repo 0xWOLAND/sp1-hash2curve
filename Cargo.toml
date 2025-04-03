@@ -1,0 +1,12 @@
+[package]
+name = "sp1-hash2curve"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+substrate-bn = { package = "substrate-bn-succinct", git = "https://github.com/sp1-patches/bn", branch = "release-v0.6.0" }
+sha2 = { git = "https://github.com/sp1-patches/RustCrypto-hashes", branch = "ratan/patch-sha2-v0.10.8"}
+hex = "0.4.3"
+num-bigint = "0.4.6"
+subtle = "2.6.1"
+num-integer = "0.1.46"
