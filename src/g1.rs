@@ -262,4 +262,25 @@ mod tests {
         assert!(u[0] == Fq::from_str("2044513137826275527915612741016000753813717898656440700304636055936191489587").unwrap());
         assert!(u[1] == Fq::from_str("11602613730878338430727365363851039884306398846852682736694594518413917134846").unwrap());
     }
+
+    #[test]
+    fn test_hash2curve() {
+        
+        // Test Vector taken from https://github.com/Consensys/gnark-crypto/blob/master/ecc/bn254/hash_vectors_test.go
+        let q = AffineG1::hash(b"abc", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_");
+        assert!(q == AffineG1::new(Fq::from_str("16267524812466668166267883771992486438338357688076900798565538061554532963281").unwrap(), Fq::from_str("1844916233815282837483764409618609279507070495361570126601873459268232811805").unwrap()).unwrap());
+
+        let q = AffineG1::hash(b"abcdef0123456789", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_");
+        assert!(q == AffineG1::new(Fq::from_str("11077683243901808951859264683654586764079462418577485658911541848692394044746").unwrap(), Fq::from_str("4858124309270455482359664916577923636817363175462672327824733704859450489677").unwrap()).unwrap());
+
+        let q = AffineG1::hash(b"q128_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_");
+        assert!(q == AffineG1::new(Fq::from_str("449076125358095157945547407089359408531318284903480972761046551095956160348").unwrap(), Fq::from_str("3427911873443593747709927415036866402371639925174562008506349359915732032632").unwrap()).unwrap());
+
+        let q = AffineG1::hash(b"", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_");
+        assert!(q == AffineG1::new(Fq::from_str("4790658965958450548702669593570794336562317867247372723806336874591549759110").unwrap(), Fq::from_str("1163238807669877429342450210709044731909255047583162173012265677391336920021").unwrap()).unwrap());
+
+        let q = AffineG1::hash(b"a512_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_");
+        assert!(q == AffineG1::new(Fq::from_str("763925112321939766609678334678065587309331741428777416269918389033192485838").unwrap(), Fq::from_str("12636771015364464547273606234110225240317241569495907283228710706019336772016").unwrap()).unwrap());
+
+    }
 }
