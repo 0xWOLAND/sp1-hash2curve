@@ -154,14 +154,10 @@ impl HashToG1 for AffineG1 {
         gx = gx + Fq::from_str("3").unwrap(); // 32. gx = gx + B
     
         let mut y: Fq = gx.sqrt().unwrap(); // 33. y = sqrt(gx)
-    
-        #[allow(non_snake_case)]
-        let signsNotEqual = Self::sgn0(u) ^ Self::sgn0(y);
+        let signs_not_equal = Self::sgn0(u) ^ Self::sgn0(y);
     
         let tv1 = Fq::zero() - y;
-        
-        // Conditionally select y or -y based on sign
-        if signsNotEqual != 0 { y = tv1 }
+        if signs_not_equal != 0 { y = tv1 }
         
         AffineG1::new(x, y)
     }
