@@ -110,159 +110,65 @@ impl HashToG1 for AffineG1 {
         let mut c3: Fq = Fq::from_str("5174556184976127869173189452163337195348491024958816448391141365979064675186").unwrap();
         let mut c4: Fq = Fq::from_str("2609072103093089037936242735953952295622231240021995565748958972744717830193").unwrap();
 
-        println!("R_inv:");
-        print_fq_as_bytes(R_inv);
-
         z = z * R_inv;
         c1 = c1 * R_inv;
         c2 = c2 * R_inv;
         c3 = c3 * R_inv;
         c4 = c4 * R_inv;
 
-        println!("z:");
-        print_fq_as_bytes(z);
-        println!("c1:");
-        print_fq_as_bytes(c1);
-        println!("c2:");
-        print_fq_as_bytes(c2);
-        println!("c3:");
-        print_fq_as_bytes(c3);
-
         let mut tv1: Fq = u * u;
-        println!("Step 1 - tv1 = u²:");
-        print_fq_as_bytes(tv1);
-        
         tv1 = tv1 * c1;
-        println!("Step 2 - tv1 = tv1 * c1:");
-        print_fq_as_bytes(tv1);
         
         let tv2: Fq = Fq::one() + tv1;
-        println!("Step 3 - tv2 = 1 + tv1:");
-        print_fq_as_bytes(tv2);
-        
         tv1 = Fq::one() - tv1;
-        println!("Step 4 - tv1 = 1 - tv1:");
-        print_fq_as_bytes(tv1);
         
         let mut tv3: Fq = tv1 * tv2;
-        println!("Step 5 - tv3 = tv1 * tv2:");
-        print_fq_as_bytes(tv3);
-        
         tv3 = tv3.inverse().unwrap();
-        println!("Step 6 - tv3 = inv0(tv3):");
-        print_fq_as_bytes(tv3);
         
-        let mut tv4: Fq = u * tv1;          //    7.  tv4 = u * tv1  
-        println!("Step 7 - tv4 = u * tv1:");
-        print_fq_as_bytes(tv4);
+        let mut tv4: Fq = u * tv1;          // 7. tv4 = u * tv1  
+        tv4 = tv4 * tv3;                    // 8. tv4 = tv4 * tv3
+        tv4 = tv4 * c3;                     // 9. tv4 = tv4 * c3
         
-        tv4 = tv4 * tv3;                    //    8.  tv4 = tv4 * tv3
-        println!("Step 8 - tv4 = tv4 * tv3:");
-        print_fq_as_bytes(tv4);
-        
-        tv4 = tv4 * c3;                     //    9.  tv4 = tv4 * c3
-        println!("Step 9 - tv4 = tv4 * c3:");
-        print_fq_as_bytes(tv4);
-        
-        let x1: Fq = c2 - tv4;              //    10.  x1 = c2 - tv4
-        println!("Step 10 - x1 = c2 - tv4:");
-        print_fq_as_bytes(x1);
+        let x1: Fq = c2 - tv4;              // 10. x1 = c2 - tv4
         
         let mut gx1: Fq = x1 * x1;
-        println!("Step 11 - gx1 = x1²:");
-        print_fq_as_bytes(gx1);
-        
-        //12. gx1 = gx1 + A  It is crucial to include this step if the curve has nonzero A coefficient.
-        gx1 = gx1 * x1;                     //    13. gx1 = gx1 * x1    
-        println!("Step 13 - gx1 = gx1 * x1:");
-        print_fq_as_bytes(gx1);
-        
-        gx1 = gx1 + Fq::from_str("3").unwrap();            //    14. gx1 = gx1 + B
-        println!("Step 14 - gx1 = gx1 + B:");
-        print_fq_as_bytes(gx1);
+        // 12. gx1 = gx1 + A  (if curve has nonzero A coefficient)
+        gx1 = gx1 * x1;                     // 13. gx1 = gx1 * x1    
+        gx1 = gx1 + Fq::from_str("3").unwrap(); // 14. gx1 = gx1 + B
     
-        // let gx1NotSquare: i32 = if gx1.legendre().is_qr() {0} else {-1};    //    15.  e1 = is_square(gx1)
-        // gx1NotSquare = 0 if gx1 is a square, -1 otherwise
-    
-        let x2: Fq = c2 + tv4;              //    16.  x2 = c2 + tv4
-        println!("Step 16 - x2 = c2 + tv4:");
-        print_fq_as_bytes(x2);
+        let x2: Fq = c2 + tv4;              // 16. x2 = c2 + tv4
         
         let mut gx2: Fq = x2 * x2;
-        println!("Step 17 - gx2 = x2²:");
-        print_fq_as_bytes(gx2);
-        
-        //    18. gx2 = gx2 + A     See line 12
-        gx2 = gx2 * x2;                     //    19. gx2 = gx2 * x2
-        println!("Step 19 - gx2 = gx2 * x2:");
-        print_fq_as_bytes(gx2);
-        
-        gx2 = gx2 + Fq::from_str("3").unwrap();            //    20. gx2 = gx2 + B
-        println!("Step 20 - gx2 = gx2 + B:");
-        print_fq_as_bytes(gx2);
+        // 18. gx2 = gx2 + A (if curve has nonzero A coefficient)
+        gx2 = gx2 * x2;                     // 19. gx2 = gx2 * x2
+        gx2 = gx2 + Fq::from_str("3").unwrap(); // 20. gx2 = gx2 + B
     
         let mut x3: Fq = tv2 * tv2;
-        println!("Step 22 - x3 = tv2²:");
-        print_fq_as_bytes(x3);
-        
-        x3 = x3 * tv3;                      //    23.  x3 = x3 * tv3
-        println!("Step 23 - x3 = x3 * tv3:");
-        print_fq_as_bytes(x3);
-        
+        x3 = x3 * tv3;                      // 23. x3 = x3 * tv3
         x3 = x3 * x3;
-        println!("Step 24 - x3 = x3²:");
-        print_fq_as_bytes(x3);
+        x3 = x3 * c4;                       // 25. x3 = x3 * c4
+        x3 = x3 + z;                        // 26. x3 = x3 + Z
         
-        x3 = x3 * c4;                       //    25.  x3 = x3 * c4
-        println!("Step 25 - x3 = x3 * c4:");
-        print_fq_as_bytes(x3);
+        // 27. x = CMOV(x3, x1, e1) - x = x1 if gx1 is square, else x = x3
+        let mut x: Fq = if gx1.sqrt().is_some() { x1 } else { x3 };
     
-        x3 = x3 + z;                        //    26.  x3 = x3 + Z
-        println!("Step 26 - x3 = x3 + Z:");
-        print_fq_as_bytes(x3);
+        // 28. x = CMOV(x, x2, e2) - x = x2 if gx2 is square and gx1 is not
+        if gx2.sqrt().is_some() && !gx1.sqrt().is_some() { x = x2 }
         
-        let mut x: Fq = if gx1.sqrt().is_some() { x1 } else { x3};  //    27.   x = CMOV(x3, x1, e1)   # x = x1 if gx1 is square, else x = x3
-        println!("Step 27 - x = CMOV(x3, x1, e1):");
-        print_fq_as_bytes(x);
+        let mut gx = x * x;                 // 29. gx = x²
+        // 30. gx = gx + A (if curve has nonzero A coefficient)
+        gx = gx * x;                        // 31. gx = gx * x
+        gx = gx + Fq::from_str("3").unwrap(); // 32. gx = gx + B
     
-        // if gx2.legendre().is_qr() && !gx1.legendre().is_qr() {
-        if gx2.sqrt().is_some() && !gx1.sqrt().is_some() {
-             x = x2
-        } //    28.   x = CMOV(x, x2, e2)    # x = x2 if gx2 is square and gx1 is not
-        println!("Step 28 - x = CMOV(x, x2, e2):");
-        print_fq_as_bytes(x);
-        // Select x2 iff gx2 is square and gx1 is not, iff gx1SquareOrGx2Not = 0
-        
-        let mut gx = x * x;    //    29.  gx = x²
-        println!("Step 29 - gx = x²:");
-        print_fq_as_bytes(gx);
-        
-        //    30.  gx = gx + A
-        gx = gx * x;                //    31.  gx = gx * x
-        println!("Step 31 - gx = gx * x:");
-        print_fq_as_bytes(gx);
-        
-        gx = gx + Fq::from_str("3").unwrap();      //    32.  gx = gx + B
-        println!("Step 32 - gx = gx + B:");
-        print_fq_as_bytes(gx);
-    
-        let mut y: Fq = gx.sqrt().unwrap();     //    33.   y = sqrt(gx)
-        println!("Step 33 - y = sqrt(gx):");
-        print_fq_as_bytes(y);
+        let mut y: Fq = gx.sqrt().unwrap(); // 33. y = sqrt(gx)
     
         #[allow(non_snake_case)]
         let signsNotEqual = Self::sgn0(u) ^ Self::sgn0(y);
-        println!("signsNotEqual:");
-        println!("{}", signsNotEqual);
     
-        tv1 = Fq::zero() - y;
-        println!("tv1 = -y:");
-        print_fq_as_bytes(tv1);
+        let tv1 = Fq::zero() - y;
         
-        //TODO: conditionallySelect
-        if signsNotEqual == 0 {y = y} else {y = tv1}
-        println!("Final y after sign adjustment:");
-        print_fq_as_bytes(y);
+        // Conditionally select y or -y based on sign
+        if signsNotEqual != 0 { y = tv1 }
         
         AffineG1::new(x, y)
     }
@@ -276,46 +182,19 @@ impl HashToG1 for AffineG1 {
     }
 }
 
-fn print_fq_as_bytes(fq: Fq) {
-    let bytes = unsafe { transmute::<_, [u8; 32]>(fq) };
-    println!("bytes: {:?}", bytes);
-}
-
 #[cfg(test)]
 mod tests {
-    use std::mem::transmute;
-
     use super::*;
-
 
     #[test]
     fn test_map_to_curve() {
         let u = Fq::hash_to_field(b"abc", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
         assert!(u[0] == Fq::from_str("7951370986911800256774597109927097176311261202951929331835478768207980370345").unwrap());
         assert!(u[1] == Fq::from_str("8293556689416303717881563281438712057465092967957999993252567763605862533321").unwrap());
-
-        let u0_bytes = unsafe { transmute::<_, [u8; 32]>(u[0]) };
-        let u1_bytes = unsafe { transmute::<_, [u8; 32]>(u[1]) };
-        println!("u0_bytes: {:?}", u0_bytes);
-        println!("u1_bytes: {:?}", u1_bytes);
-
         let q0 = AffineG1::map_to_curve(u[0]).unwrap();
         let q1 = AffineG1::map_to_curve(u[1]).unwrap();
-        println!("q0: {:?}", q0);
-        println!("q1: {:?}", q1);
         assert!(q0 == AffineG1::new(Fq::from_str("9192524283969255398734814822241735402343760142215332184598869386265143635853").unwrap(), Fq::from_str("14750013374492649779039522357455217122947104756064249167130349093550158884161").unwrap()).unwrap());
         assert!(q1 == AffineG1::new(Fq::from_str("2219529064992744478098731193326567804904209297389738932911685687632211367327").unwrap(), Fq::from_str("1910726159786414357764375718946103460897900837832114831609513656424867805207").unwrap()).unwrap());
-        let q0_expected = AffineG1::new(Fq::from_str("9192524283969255398734814822241735402343760142215332184598869386265143635853").unwrap(), Fq::from_str("14750013374492649779039522357455217122947104756064249167130349093550158884161").unwrap()).unwrap();
-        let q1_expected = AffineG1::new(Fq::from_str("2219529064992744478098731193326567804904209297389738932911685687632211367327").unwrap(), Fq::from_str("1910726159786414357764375718946103460897900837832114831609513656424867805207").unwrap()).unwrap();
-
-        let q0_bytes = unsafe { transmute::<_, [u8; 64]>(q0) };
-        let q1_bytes = unsafe { transmute::<_, [u8; 64]>(q1) };
-        let q0_expected_bytes = unsafe { transmute::<_, [u8; 64]>(q0_expected) };
-        let q1_expected_bytes = unsafe { transmute::<_, [u8; 64]>(q1_expected) };
-
-        println!("q0_expected_bytes: {:?}", q0_expected_bytes);
-        println!("q1_expected_bytes: {:?}", q1_expected_bytes);
-
 
         let u = Fq::hash_to_field(b"abcdef0123456789", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
         assert!(u[0] == Fq::from_str("21473511429296129787161665655193361189518945362859158450118183976151186446397").unwrap());
