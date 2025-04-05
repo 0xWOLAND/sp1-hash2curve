@@ -6,7 +6,7 @@ use substrate_bn::{arith::U256, AffineG1, Fq, GroupError};
 use subtle::{Choice, ConditionallySelectable};
 use sha2::{Sha256, digest::Digest};
 use anyhow::Result;
-use crate::HashToG1;
+use crate::HashToCurve;
 
 // https://www.ietf.org/archive/id/draft-irtf-cfrg-hash-to-curve-13.html#hashtofield
 fn expand_message_xmd(msg: &[u8], dst: &[u8], LEN_IN_BYTES: usize) -> Vec<u8> {
@@ -82,17 +82,17 @@ fn hash_to_field(msg: &[u8], dst: &[u8], count: usize) -> Vec<Fq> {
         .collect()
 }
 
-trait Hash2Field {
+pub(crate) trait HashToField {
     fn hash_to_field(msg: &[u8], dst: &[u8], count: usize) -> Vec<Fq>;
 }
 
-impl Hash2Field for Fq {
+impl HashToField for Fq {
     fn hash_to_field(msg: &[u8], dst: &[u8], count: usize) -> Vec<Fq> {
         hash_to_field(msg, dst, count)
     }
 }
 
-impl HashToG1 for AffineG1 {
+impl HashToCurve for AffineG1 {
     type FieldElement = Fq;
 
     fn sgn0(x: Fq) -> u64 {
