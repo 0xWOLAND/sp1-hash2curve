@@ -102,64 +102,167 @@ impl HashToG1 for AffineG1 {
     }
 
     fn map_to_curve(u: Fq) -> Result<Self, GroupError> {
+        let R_inv: Fq = Fq::from_slice(&[14, 10, 119, 193, 154, 7, 223, 47, 102, 110, 163, 111, 120, 121, 70, 44, 10, 120, 235, 40, 245, 199, 11, 61, 211, 93, 67, 141, 197, 143, 13, 157]).unwrap().inverse().unwrap();
+
         let mut z: Fq = Fq::from_str("6350874878119819312338956282401532409788428879151445726012394534686998597021").unwrap();
         let mut c1: Fq = Fq::from_str("3515256640640002027109419384348854550457404359307959241360540244102768179501").unwrap();
         let mut c2: Fq = Fq::from_str("7768683996859727954953724731427871339453941139073188968338321679979113805781").unwrap();
         let mut c3: Fq = Fq::from_str("5174556184976127869173189452163337195348491024958816448391141365979064675186").unwrap();
         let mut c4: Fq = Fq::from_str("2609072103093089037936242735953952295622231240021995565748958972744717830193").unwrap();
 
-        z = z * Fq::one().inverse().unwrap();
-        c1 = c1 * Fq::one().inverse().unwrap();
-        c2 = c2 * Fq::one().inverse().unwrap();
-        c3 = c3 * Fq::one().inverse().unwrap();
-        c4 = c4 * Fq::one().inverse().unwrap();
+        println!("R_inv:");
+        print_fq_as_bytes(R_inv);
 
-        let mut tv1: Fq = u * u;       //    1.  tv1 = u²
-        tv1 = tv1 * c1;                     //    2.  tv1 = tv1 * c1
-        let tv2: Fq = Fq::one() + tv1;        //    3.  tv2 = 1 + tv1
-        tv1 = Fq::one() - tv1;                //    4.  tv1 = 1 - tv1
-        let mut tv3: Fq = tv1 * tv2;        //    5.  tv3 = tv1 * tv2 
+        z = z * R_inv;
+        c1 = c1 * R_inv;
+        c2 = c2 * R_inv;
+        c3 = c3 * R_inv;
+        c4 = c4 * R_inv;
+
+        println!("z:");
+        print_fq_as_bytes(z);
+        println!("c1:");
+        print_fq_as_bytes(c1);
+        println!("c2:");
+        print_fq_as_bytes(c2);
+        println!("c3:");
+        print_fq_as_bytes(c3);
+
+        let mut tv1: Fq = u * u;
+        println!("Step 1 - tv1 = u²:");
+        print_fq_as_bytes(tv1);
         
-        tv3 = tv3.inverse().unwrap();       //    6.  tv3 = inv0(tv3)
+        tv1 = tv1 * c1;
+        println!("Step 2 - tv1 = tv1 * c1:");
+        print_fq_as_bytes(tv1);
+        
+        let tv2: Fq = Fq::one() + tv1;
+        println!("Step 3 - tv2 = 1 + tv1:");
+        print_fq_as_bytes(tv2);
+        
+        tv1 = Fq::one() - tv1;
+        println!("Step 4 - tv1 = 1 - tv1:");
+        print_fq_as_bytes(tv1);
+        
+        let mut tv3: Fq = tv1 * tv2;
+        println!("Step 5 - tv3 = tv1 * tv2:");
+        print_fq_as_bytes(tv3);
+        
+        tv3 = tv3.inverse().unwrap();
+        println!("Step 6 - tv3 = inv0(tv3):");
+        print_fq_as_bytes(tv3);
+        
         let mut tv4: Fq = u * tv1;          //    7.  tv4 = u * tv1  
-        tv4 = tv4 * tv3;                    //    8.  tv4 = tv4 * tv3
-        tv4 = tv4 * c3;                     //    9.  tv4 = tv4 * c3
-        let x1: Fq = c2 - tv4;              //    10.  x1 = c2 - tv4
+        println!("Step 7 - tv4 = u * tv1:");
+        print_fq_as_bytes(tv4);
         
-        let mut gx1: Fq = x1 * x1;      //    11. gx1 = x1²
+        tv4 = tv4 * tv3;                    //    8.  tv4 = tv4 * tv3
+        println!("Step 8 - tv4 = tv4 * tv3:");
+        print_fq_as_bytes(tv4);
+        
+        tv4 = tv4 * c3;                     //    9.  tv4 = tv4 * c3
+        println!("Step 9 - tv4 = tv4 * c3:");
+        print_fq_as_bytes(tv4);
+        
+        let x1: Fq = c2 - tv4;              //    10.  x1 = c2 - tv4
+        println!("Step 10 - x1 = c2 - tv4:");
+        print_fq_as_bytes(x1);
+        
+        let mut gx1: Fq = x1 * x1;
+        println!("Step 11 - gx1 = x1²:");
+        print_fq_as_bytes(gx1);
+        
         //12. gx1 = gx1 + A  It is crucial to include this step if the curve has nonzero A coefficient.
         gx1 = gx1 * x1;                     //    13. gx1 = gx1 * x1    
+        println!("Step 13 - gx1 = gx1 * x1:");
+        print_fq_as_bytes(gx1);
+        
         gx1 = gx1 + Fq::from_str("3").unwrap();            //    14. gx1 = gx1 + B
+        println!("Step 14 - gx1 = gx1 + B:");
+        print_fq_as_bytes(gx1);
+    
+        // let gx1NotSquare: i32 = if gx1.legendre().is_qr() {0} else {-1};    //    15.  e1 = is_square(gx1)
+        // gx1NotSquare = 0 if gx1 is a square, -1 otherwise
     
         let x2: Fq = c2 + tv4;              //    16.  x2 = c2 + tv4
-        let mut gx2: Fq = x2 * x2;      //    17. gx2 = x2²
+        println!("Step 16 - x2 = c2 + tv4:");
+        print_fq_as_bytes(x2);
+        
+        let mut gx2: Fq = x2 * x2;
+        println!("Step 17 - gx2 = x2²:");
+        print_fq_as_bytes(gx2);
+        
         //    18. gx2 = gx2 + A     See line 12
         gx2 = gx2 * x2;                     //    19. gx2 = gx2 * x2
+        println!("Step 19 - gx2 = gx2 * x2:");
+        print_fq_as_bytes(gx2);
+        
         gx2 = gx2 + Fq::from_str("3").unwrap();            //    20. gx2 = gx2 + B
+        println!("Step 20 - gx2 = gx2 + B:");
+        print_fq_as_bytes(gx2);
     
-        let mut x3: Fq = tv2 * tv2;      //    22.  x3 = tv2²
+        let mut x3: Fq = tv2 * tv2;
+        println!("Step 22 - x3 = tv2²:");
+        print_fq_as_bytes(x3);
+        
         x3 = x3 * tv3;                      //    23.  x3 = x3 * tv3
-        x3 = x3 * x3;                   //    24.  x3 = x3²
+        println!("Step 23 - x3 = x3 * tv3:");
+        print_fq_as_bytes(x3);
+        
+        x3 = x3 * x3;
+        println!("Step 24 - x3 = x3²:");
+        print_fq_as_bytes(x3);
+        
         x3 = x3 * c4;                       //    25.  x3 = x3 * c4
+        println!("Step 25 - x3 = x3 * c4:");
+        print_fq_as_bytes(x3);
+    
         x3 = x3 + z;                        //    26.  x3 = x3 + Z
-
-        let mut x = if gx1.sqrt().is_some() { x1 } else { x3};
-
+        println!("Step 26 - x3 = x3 + Z:");
+        print_fq_as_bytes(x3);
+        
+        let mut x: Fq = if gx1.sqrt().is_some() { x1 } else { x3};  //    27.   x = CMOV(x3, x1, e1)   # x = x1 if gx1 is square, else x = x3
+        println!("Step 27 - x = CMOV(x3, x1, e1):");
+        print_fq_as_bytes(x);
+    
         // if gx2.legendre().is_qr() && !gx1.legendre().is_qr() {
-        if gx2.sqrt().is_some() && !gx1.sqrt().is_some() { x = x2 } //    28.   x = CMOV(x, x2, e2)    # x = x2 if gx2 is square and gx1 is not
+        if gx2.sqrt().is_some() && !gx1.sqrt().is_some() {
+             x = x2
+        } //    28.   x = CMOV(x, x2, e2)    # x = x2 if gx2 is square and gx1 is not
+        println!("Step 28 - x = CMOV(x, x2, e2):");
+        print_fq_as_bytes(x);
+        // Select x2 iff gx2 is square and gx1 is not, iff gx1SquareOrGx2Not = 0
         
         let mut gx = x * x;    //    29.  gx = x²
+        println!("Step 29 - gx = x²:");
+        print_fq_as_bytes(gx);
+        
         //    30.  gx = gx + A
         gx = gx * x;                //    31.  gx = gx * x
+        println!("Step 31 - gx = gx * x:");
+        print_fq_as_bytes(gx);
+        
         gx = gx + Fq::from_str("3").unwrap();      //    32.  gx = gx + B
+        println!("Step 32 - gx = gx + B:");
+        print_fq_as_bytes(gx);
+    
         let mut y: Fq = gx.sqrt().unwrap();     //    33.   y = sqrt(gx)
-
+        println!("Step 33 - y = sqrt(gx):");
+        print_fq_as_bytes(y);
+    
         #[allow(non_snake_case)]
         let signsNotEqual = Self::sgn0(u) ^ Self::sgn0(y);
-
-        let tv1: Fq = Fq::zero() - y;
-
+        println!("signsNotEqual:");
+        println!("{}", signsNotEqual);
+    
+        tv1 = Fq::zero() - y;
+        println!("tv1 = -y:");
+        print_fq_as_bytes(tv1);
+        
+        //TODO: conditionallySelect
         if signsNotEqual == 0 {y = y} else {y = tv1}
+        println!("Final y after sign adjustment:");
+        print_fq_as_bytes(y);
         
         AffineG1::new(x, y)
     }
@@ -175,7 +278,7 @@ impl HashToG1 for AffineG1 {
 
 fn print_fq_as_bytes(fq: Fq) {
     let bytes = unsafe { transmute::<_, [u8; 32]>(fq) };
-    // println!("bytes: {:?}", bytes);
+    println!("bytes: {:?}", bytes);
 }
 
 #[cfg(test)]
@@ -187,31 +290,31 @@ mod tests {
 
     #[test]
     fn test_map_to_curve() {
-        // let u = Fq::hash_to_field(b"abc", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
-        // assert!(u[0] == Fq::from_str("7951370986911800256774597109927097176311261202951929331835478768207980370345").unwrap());
-        // assert!(u[1] == Fq::from_str("8293556689416303717881563281438712057465092967957999993252567763605862533321").unwrap());
+        let u = Fq::hash_to_field(b"abc", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
+        assert!(u[0] == Fq::from_str("7951370986911800256774597109927097176311261202951929331835478768207980370345").unwrap());
+        assert!(u[1] == Fq::from_str("8293556689416303717881563281438712057465092967957999993252567763605862533321").unwrap());
 
-        // let u0_bytes = unsafe { transmute::<_, [u8; 32]>(u[0]) };
-        // let u1_bytes = unsafe { transmute::<_, [u8; 32]>(u[1]) };
-        // println!("u0_bytes: {:?}", u0_bytes);
-        // println!("u1_bytes: {:?}", u1_bytes);
+        let u0_bytes = unsafe { transmute::<_, [u8; 32]>(u[0]) };
+        let u1_bytes = unsafe { transmute::<_, [u8; 32]>(u[1]) };
+        println!("u0_bytes: {:?}", u0_bytes);
+        println!("u1_bytes: {:?}", u1_bytes);
 
-        // let q0 = AffineG1::map_to_curve(u[0]).unwrap();
-        // let q1 = AffineG1::map_to_curve(u[1]).unwrap();
-        // println!("q0: {:?}", q0);
-        // println!("q1: {:?}", q1);
-        // // assert!(q0 == AffineG1::new(Fq::from_str("9192524283969255398734814822241735402343760142215332184598869386265143635853").unwrap(), Fq::from_str("14750013374492649779039522357455217122947104756064249167130349093550158884161").unwrap()).unwrap());
-        // // assert!(q1 == AffineG1::new(Fq::from_str("2219529064992744478098731193326567804904209297389738932911685687632211367327").unwrap(), Fq::from_str("1910726159786414357764375718946103460897900837832114831609513656424867805207").unwrap()).unwrap());
-        // let q0_expected = AffineG1::new(Fq::from_str("9192524283969255398734814822241735402343760142215332184598869386265143635853").unwrap(), Fq::from_str("14750013374492649779039522357455217122947104756064249167130349093550158884161").unwrap()).unwrap();
-        // let q1_expected = AffineG1::new(Fq::from_str("2219529064992744478098731193326567804904209297389738932911685687632211367327").unwrap(), Fq::from_str("1910726159786414357764375718946103460897900837832114831609513656424867805207").unwrap()).unwrap();
+        let q0 = AffineG1::map_to_curve(u[0]).unwrap();
+        let q1 = AffineG1::map_to_curve(u[1]).unwrap();
+        println!("q0: {:?}", q0);
+        println!("q1: {:?}", q1);
+        assert!(q0 == AffineG1::new(Fq::from_str("9192524283969255398734814822241735402343760142215332184598869386265143635853").unwrap(), Fq::from_str("14750013374492649779039522357455217122947104756064249167130349093550158884161").unwrap()).unwrap());
+        assert!(q1 == AffineG1::new(Fq::from_str("2219529064992744478098731193326567804904209297389738932911685687632211367327").unwrap(), Fq::from_str("1910726159786414357764375718946103460897900837832114831609513656424867805207").unwrap()).unwrap());
+        let q0_expected = AffineG1::new(Fq::from_str("9192524283969255398734814822241735402343760142215332184598869386265143635853").unwrap(), Fq::from_str("14750013374492649779039522357455217122947104756064249167130349093550158884161").unwrap()).unwrap();
+        let q1_expected = AffineG1::new(Fq::from_str("2219529064992744478098731193326567804904209297389738932911685687632211367327").unwrap(), Fq::from_str("1910726159786414357764375718946103460897900837832114831609513656424867805207").unwrap()).unwrap();
 
-        // let q0_bytes = unsafe { transmute::<_, [u8; 64]>(q0) };
-        // let q1_bytes = unsafe { transmute::<_, [u8; 64]>(q1) };
-        // let q0_expected_bytes = unsafe { transmute::<_, [u8; 64]>(q0_expected) };
-        // let q1_expected_bytes = unsafe { transmute::<_, [u8; 64]>(q1_expected) };
+        let q0_bytes = unsafe { transmute::<_, [u8; 64]>(q0) };
+        let q1_bytes = unsafe { transmute::<_, [u8; 64]>(q1) };
+        let q0_expected_bytes = unsafe { transmute::<_, [u8; 64]>(q0_expected) };
+        let q1_expected_bytes = unsafe { transmute::<_, [u8; 64]>(q1_expected) };
 
-        // println!("q0_expected_bytes: {:?}", q0_expected_bytes);
-        // println!("q1_expected_bytes: {:?}", q1_expected_bytes);
+        println!("q0_expected_bytes: {:?}", q0_expected_bytes);
+        println!("q1_expected_bytes: {:?}", q1_expected_bytes);
 
 
         let u = Fq::hash_to_field(b"abcdef0123456789", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
@@ -222,34 +325,34 @@ mod tests {
         assert!(q0 == AffineG1::new(Fq::from_str("18460180777384996805517037410124907200489198402642233028065858702876325100173").unwrap(), Fq::from_str("7297925201307108404837100086863759533322513325723985709501528779399363778017").unwrap()).unwrap());
         assert!(q1 == AffineG1::new(Fq::from_str("3555154583542724794659651262588560064541528505277497563560719769602741821875").unwrap(), Fq::from_str("16977637197741440727690443467244845071598833410411827382713029829487302630942").unwrap()).unwrap());
 
-        // let u = Fq::hash_to_field(b"", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
-        // assert!(u[0] == Fq::from_str("21498498956904532351723378912032873852253513037650692457560050969314502748597").unwrap());
-        // assert!(u[1] == Fq::from_str("3106428082009635406807032300288584059640244342225966151234406580587112112014").unwrap());
-        // let q0 = AffineG1::map_to_curve(u[0]).unwrap();
-        // let q1 = AffineG1::map_to_curve(u[1]).unwrap();
-        // assert!(q0 == AffineG1::new(Fq::from_str("6453599284581821454252898427469570073430843606970728650145294868078481709202").unwrap(), Fq::from_str("18995581315822946008285423533984677217009732542182181378734620089887646003813").unwrap()).unwrap());
-        // assert!(q1 == AffineG1::new(Fq::from_str("11407741707599100220112369632304941265828026024296299145123573579681208493329").unwrap(), Fq::from_str("10936143794657572576642578819087135925019845836839797797601194413922673415908").unwrap()).unwrap());
+        let u = Fq::hash_to_field(b"", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
+        assert!(u[0] == Fq::from_str("21498498956904532351723378912032873852253513037650692457560050969314502748597").unwrap());
+        assert!(u[1] == Fq::from_str("3106428082009635406807032300288584059640244342225966151234406580587112112014").unwrap());
+        let q0 = AffineG1::map_to_curve(u[0]).unwrap();
+        let q1 = AffineG1::map_to_curve(u[1]).unwrap();
+        assert!(q0 == AffineG1::new(Fq::from_str("6453599284581821454252898427469570073430843606970728650145294868078481709202").unwrap(), Fq::from_str("18995581315822946008285423533984677217009732542182181378734620089887646003813").unwrap()).unwrap());
+        assert!(q1 == AffineG1::new(Fq::from_str("11407741707599100220112369632304941265828026024296299145123573579681208493329").unwrap(), Fq::from_str("10936143794657572576642578819087135925019845836839797797601194413922673415908").unwrap()).unwrap());
 
-        // let u = Fq::hash_to_field(b"a512_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
-        // assert!(u[0] == Fq::from_str("2044513137826275527915612741016000753813717898656440700304636055936191489587").unwrap());
-        // assert!(u[1] == Fq::from_str("11602613730878338430727365363851039884306398846852682736694594518413917134846").unwrap());
-        // let q0 = AffineG1::map_to_curve(u[0]).unwrap();
-        // let q1 = AffineG1::map_to_curve(u[1]).unwrap();
-        // assert!(q0 == AffineG1::new(Fq::from_str("15648482829240231450830106706414350609765304380572340182587624553168656871227").unwrap(), Fq::from_str("2884090034870953736753092279678539049499634063513478774348194493913603274393").unwrap()).unwrap());
-        // assert!(q1 == AffineG1::new(Fq::from_str("18124086957708989159022363715051003299508967919164499453496316230748020813590").unwrap(), Fq::from_str("16826684847259413750643448296038340935081016395629901184485922600208379683908").unwrap()).unwrap());
+        let u = Fq::hash_to_field(b"a512_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
+        assert!(u[0] == Fq::from_str("2044513137826275527915612741016000753813717898656440700304636055936191489587").unwrap());
+        assert!(u[1] == Fq::from_str("11602613730878338430727365363851039884306398846852682736694594518413917134846").unwrap());
+        let q0 = AffineG1::map_to_curve(u[0]).unwrap();
+        let q1 = AffineG1::map_to_curve(u[1]).unwrap();
+        assert!(q0 == AffineG1::new(Fq::from_str("15648482829240231450830106706414350609765304380572340182587624553168656871227").unwrap(), Fq::from_str("2884090034870953736753092279678539049499634063513478774348194493913603274393").unwrap()).unwrap());
+        assert!(q1 == AffineG1::new(Fq::from_str("18124086957708989159022363715051003299508967919164499453496316230748020813590").unwrap(), Fq::from_str("16826684847259413750643448296038340935081016395629901184485922600208379683908").unwrap()).unwrap());
 
-        // // msg: "q128_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq", P: point{"0xfe2b0743575324fc452d590d217390ad48e5a16cf051bee5c40a2eba233f5c", "0x794211e0cc72d3cbbdf8e4e5cd6e7d7e78d101ff94862caae8acbe63e9fdc78"},
-        // // Q0: point{"0x1c53b05f2fce15ba0b9100650c0fb46de1fb62f1d0968b69151151bd25dfefa4", "0x1fe783faf4bdbd79b717784dc59619106e4acccfe3b5d9750799729d855e7b81"},
-        // // Q1: point{"0x214a4e6e97adda47558f80088460eabd71ed35bc8ceafb99a493dd6f4e2b3f0a", "0xfaaeb29cc23f9d09b187a99741613aed84443e7c35736258f57982d336d13bd"},
-        // // u0: "0x2a50be15282ee276b76db1dab761f75401cdc8bd9fff81fcf4d428db16092a7b", u1: "0x23b41953676183c30aca54b5c8bd3ffe3535a6238c39f6b15487a5467d5d20eb",
+        // msg: "q128_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq", P: point{"0xfe2b0743575324fc452d590d217390ad48e5a16cf051bee5c40a2eba233f5c", "0x794211e0cc72d3cbbdf8e4e5cd6e7d7e78d101ff94862caae8acbe63e9fdc78"},
+        // Q0: point{"0x1c53b05f2fce15ba0b9100650c0fb46de1fb62f1d0968b69151151bd25dfefa4", "0x1fe783faf4bdbd79b717784dc59619106e4acccfe3b5d9750799729d855e7b81"},
+        // Q1: point{"0x214a4e6e97adda47558f80088460eabd71ed35bc8ceafb99a493dd6f4e2b3f0a", "0xfaaeb29cc23f9d09b187a99741613aed84443e7c35736258f57982d336d13bd"},
+        // u0: "0x2a50be15282ee276b76db1dab761f75401cdc8bd9fff81fcf4d428db16092a7b", u1: "0x23b41953676183c30aca54b5c8bd3ffe3535a6238c39f6b15487a5467d5d20eb",
 
-        // let u = Fq::hash_to_field(b"q128_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
-        // assert!(u[0] == Fq::from_str("19139799307876008157674469077244497844490197231122854489816996874209678928507").unwrap());
-        // assert!(u[1] == Fq::from_str("16149156964295957170548772524136742336424608142546544142472739268994996707563").unwrap());
-        // let q0 = AffineG1::map_to_curve(u[0]).unwrap();
-        // let q1 = AffineG1::map_to_curve(u[1]).unwrap();
-        // assert!(q0 == AffineG1::new(Fq::from_str("12812625340294489398993548898688649895606244530534785322892890577243153100708").unwrap(), Fq::from_str("14430750872577414903993343696062677117017041221676892932403418483169263778689").unwrap()).unwrap());
-        // assert!(q1 == AffineG1::new(Fq::from_str("15057612003824249181576746168110806738223995458659553230425471086211724164874").unwrap(), Fq::from_str("7086679767009137399570643369757025464320023320148085000688641996630730281917").unwrap()).unwrap());
+        let u = Fq::hash_to_field(b"q128_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq", b"QUUX-V01-CS02-with-BN254G1_XMD:SHA-256_SVDW_RO_", 2);
+        assert!(u[0] == Fq::from_str("19139799307876008157674469077244497844490197231122854489816996874209678928507").unwrap());
+        assert!(u[1] == Fq::from_str("16149156964295957170548772524136742336424608142546544142472739268994996707563").unwrap());
+        let q0 = AffineG1::map_to_curve(u[0]).unwrap();
+        let q1 = AffineG1::map_to_curve(u[1]).unwrap();
+        assert!(q0 == AffineG1::new(Fq::from_str("12812625340294489398993548898688649895606244530534785322892890577243153100708").unwrap(), Fq::from_str("14430750872577414903993343696062677117017041221676892932403418483169263778689").unwrap()).unwrap());
+        assert!(q1 == AffineG1::new(Fq::from_str("15057612003824249181576746168110806738223995458659553230425471086211724164874").unwrap(), Fq::from_str("7086679767009137399570643369757025464320023320148085000688641996630730281917").unwrap()).unwrap());
     }
 
 
