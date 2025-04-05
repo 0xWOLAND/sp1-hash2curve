@@ -2,7 +2,7 @@ use std::mem::transmute;
 
 use digest::{consts::U32, generic_array::GenericArray};
 use num_bigint::BigUint;
-use substrate_bn::{AffineG1, Fq, GroupError};
+use substrate_bn::{arith::U256, AffineG1, Fq, GroupError};
 use subtle::{Choice, ConditionallySelectable};
 use sha2::{Sha256, digest::Digest};
 use anyhow::Result;
@@ -102,19 +102,12 @@ impl HashToG1 for AffineG1 {
     }
 
     fn map_to_curve(u: Fq) -> Result<Self, GroupError> {
-        let R_inv: Fq = Fq::from_slice(&[14, 10, 119, 193, 154, 7, 223, 47, 102, 110, 163, 111, 120, 121, 70, 44, 10, 120, 235, 40, 245, 199, 11, 61, 211, 93, 67, 141, 197, 143, 13, 157]).unwrap().inverse().unwrap();
 
-        let mut z: Fq = Fq::from_str("6350874878119819312338956282401532409788428879151445726012394534686998597021").unwrap();
-        let mut c1: Fq = Fq::from_str("3515256640640002027109419384348854550457404359307959241360540244102768179501").unwrap();
-        let mut c2: Fq = Fq::from_str("7768683996859727954953724731427871339453941139073188968338321679979113805781").unwrap();
-        let mut c3: Fq = Fq::from_str("5174556184976127869173189452163337195348491024958816448391141365979064675186").unwrap();
-        let mut c4: Fq = Fq::from_str("2609072103093089037936242735953952295622231240021995565748958972744717830193").unwrap();
-
-        z = z * R_inv;
-        c1 = c1 * R_inv;
-        c2 = c2 * R_inv;
-        c3 = c3 * R_inv;
-        c4 = c4 * R_inv;
+        let z: Fq = Fq::from_u256(U256([1, 0])).unwrap();
+        let c1: Fq = Fq::from_u256(U256([4, 0])).unwrap();
+        let c2: Fq = Fq::from_u256(U256([270833881017518655421856604104928689827, 32161882306591588520931028742613019694])).unwrap();
+        let c3: Fq = Fq::from_u256(U256([111372491445993142249323874245484216314, 25907430997271654067])).unwrap();
+        let c4: Fq = Fq::from_u256(U256([293983376318658591435695938547208530365, 21441254871061059013954019161742013129])).unwrap();
 
         let mut tv1: Fq = u * u;
         tv1 = tv1 * c1;
