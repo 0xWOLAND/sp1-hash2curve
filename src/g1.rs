@@ -103,11 +103,11 @@ impl HashToG1 for AffineG1 {
 
     fn map_to_curve(u: Fq) -> Result<Self, GroupError> {
 
-        let z: Fq = Fq::from_u256(U256([1, 0])).unwrap();
-        let c1: Fq = Fq::from_u256(U256([4, 0])).unwrap();
-        let c2: Fq = Fq::from_u256(U256([270833881017518655421856604104928689827, 32161882306591588520931028742613019694])).unwrap();
-        let c3: Fq = Fq::from_u256(U256([111372491445993142249323874245484216314, 25907430997271654067])).unwrap();
-        let c4: Fq = Fq::from_u256(U256([293983376318658591435695938547208530365, 21441254871061059013954019161742013129])).unwrap();
+        let z: Fq = Fq::from_u256(U256([0x1, 0])).unwrap();
+        let c1: Fq = Fq::from_u256(U256([0x4, 0])).unwrap();
+        let c2: Fq = Fq::from_u256(U256([0xcbc0b548b438e5469e10460b6c3e7ea3, 0x183227397098d014dc2822db40c0ac2e])).unwrap();
+        let c3: Fq = Fq::from_u256(U256([0x53c98fc6b36d713d5d8d1cc5dffffffa, 0x00000000000000016789af3a83522eb3])).unwrap();
+        let c4: Fq = Fq::from_u256(U256([0xdd2b2385cd7b438469602eb24829a9bd, 0x10216f7ba065e00de81ac1e7808072c9])).unwrap();
 
         let mut tv1: Fq = u * u;
         tv1 = tv1 * c1;
